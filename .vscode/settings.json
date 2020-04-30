@@ -1,0 +1,7 @@
+{
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/../../devel/lib/python2.7/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages"
+    ],
+    "git.ignoreLimitWarning": true
+}
