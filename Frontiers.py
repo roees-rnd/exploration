@@ -65,25 +65,41 @@ class FrontierClass:
 		return centroids
 
 
-	def getfrontier(self, mapData):
+	def getfrontier(self, mapInfo):
 		start_time = time.time()
-		data=mapData.data
-		self.mapData_w=mapData.info.width
-		self.mapData_h=mapData.info.height
-		self.mapData_resolution=mapData.info.resolution
-		self.mapData_delta_x=mapData.info.origin.position.x
-		self.mapData_delta_y=mapData.info.origin.position.y
-		self.mapData_data = copy.deepcopy(mapData.data)
+		self.mapInfo = mapInfo
+		data = self.mapInfo.map
+		# self.mapData_w=mapData.info.width
+		# self.mapData_h=mapData.info.height
+		self.mapData_resolution=mapInfo.map_resolution
+		self.mapData_delta_x=mapInfo.map_delta_x
+		self.mapData_delta_y=mapInfo.map_delta_y
+		self.mapData_data = copy.deepcopy(mapInfo.map)
+		# self.mapData_w=mapData.info.width
+		# self.mapData_h=mapData.info.height
+		# self.mapData_resolution=mapData.info.resolution
+		# self.mapData_delta_x=mapData.info.origin.position.x
+		# self.mapData_delta_y=mapData.info.origin.position.y
+		# self.mapData_data = copy.deepcopy(mapData.data)
 			
-		img = np.zeros((self.mapData_h, self.mapData_w, 1), np.uint8)
+		img = np.zeros((mapInfo.map_sizeY, mapInfo.map_sizeX, 1), np.uint8)
 
-		for i in range(0,self.mapData_h):
-			for j in range(0,self.mapData_w):
-				if data[i*self.mapData_w+j]==100:
+		# for i in range(0,self.mapData_h):
+		# 	for j in range(0,self.mapData_w):
+		# 		if data[i*self.mapData_w+j]==100:
+		# 			img[i,j]=0
+		# 		elif data[i*self.mapData_w+j]==0:
+		# 			img[i,j]=255
+		# 		elif data[i*self.mapData_w+j]==-1:
+		# 			img[i,j]=205
+
+		for i in range(0,mapInfo.map_sizeY):
+			for j in range(0,mapInfo.map_sizeX):
+				if data[i,j]==100:
 					img[i,j]=0
-				elif data[i*self.mapData_w+j]==0:
+				elif data[i,j]==0:
 					img[i,j]=255
-				elif data[i*self.mapData_w+j]==-1:
+				elif data[i,j]==-1:
 					img[i,j]=205
 
 
@@ -127,8 +143,7 @@ class FrontierClass:
 					M = cv2.moments(cnt)
 					cx = int(M['m10']/M['m00'])
 					cy = int(M['m01']/M['m00'])
-					xr=cx*self.mapData_resolution+self.mapData_delta_x
-					yr=cy*self.mapData_resolution+self.mapData_delta_y
+					xr, yr = mapInfo.ij_to_xy(cx, cy)
 					pt=[np.array([xr,yr])]
 					if len(all_pts)>0:
 						all_pts=np.vstack([all_pts,pt])
@@ -160,7 +175,8 @@ class FrontierClass:
 
 
 	def print_frontiers(self, point_list_1, point_list_2=[]):
-		grid = np.reshape(copy.deepcopy(self.mapData_data), (self.mapData_w ,self.mapData_h))
+		grid = copy.deepcopy(self.mapData_data)
+		#grid = np.reshape(copy.deepcopy(self.mapData_data), (self.mapData_w ,self.mapData_h))
 		grid[np.where(grid == -1)] = 150
 		fig = plt.figure()
 		ax1 = fig.add_subplot(122)
@@ -235,10 +251,11 @@ class FrontierClass:
 		return uniq_FL
 
 
-	def is_point_still_prontier(self, p):
+	def is_point_still_frontier(self, p):
 		BB_margin = 5
-		p_x = (p[0]-self.mapData_delta_x)/self.mapData_resolution
-		p_y = (p[1]-self.mapData_delta_y)/self.mapData_resolution
+		p_x, p_y = self.mapInfo.xy_to_ij(p[0], p[1])
+		# p_x = (p[0]+self.mapData_delta_x)/self.mapData_resolution
+		# p_y = (p[1]+self.mapData_delta_y)/self.mapData_resolution
 		slice_contours = self.map_of_contours[(-BB_margin+int(p_y)):(BB_margin+int(p_y)), (-BB_margin+int(p_x)):(BB_margin+int(p_x))]
 		s = np.sum(slice_contours)
 		if(s==0):
@@ -251,8 +268,10 @@ class FrontierClass:
 
 	def remove_irrelevant_frontiers(self):
 		relevant_frontiers=[]
+		if self.list_of_frontiers is None:
+			return []
 		for p in self.list_of_frontiers:
-			if self.is_point_still_prontier(p):
+			if self.is_point_still_frontier(p):
 				relevant_frontiers.append(p)
 			else:
 				self.irrelevant_frontiers.append(p)
