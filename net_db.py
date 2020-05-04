@@ -9,7 +9,7 @@ class net_db:
         self.G = nx.Graph()
         self.last_node = None
         self.num_nodes = 0
-        self._min_dist = 1
+        self._min_dist = 0.7
         self.r=np.array([])
 
     def add_node(self, xy=(0, 0), is_door=False):
@@ -73,7 +73,7 @@ class net_db:
 
     def nodes_are_eq(self, na, thresh=0.3):
         diff = np.array(list(self.G.nodes))-np.array(na)
-        rng = np.sqrt(np.sum(np.square(diff), axis=1))
+        rng = np.linalg.norm(diff, axis=1)  # np.sqrt(np.sum(np.square(diff), axis=1))
         return [n for n, r in zip(list(self.G.nodes),rng) if r < thresh]
 
 
@@ -81,8 +81,10 @@ if __name__=="__main__":
     import net_db
     ndb = net_db.net_db()
     ndb.add_node((0, 0.1), False)
+    ndb.add_node((-5, 0.1), False)
     ndb.add_node((2, 0.1), True)
-
+    ndb.show_graph()
+    print("end")
 
 # if True:
 #     G = nx.Graph()
