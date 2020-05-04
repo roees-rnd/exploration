@@ -13,3 +13,13 @@ class MapInfo:
 
     def set_map(self, map_data):
         self.map = np.reshape(copy.deepcopy(map_data), (self.map_sizeX,self.map_sizeY))
+
+    def xy_to_ij(self, x, y):
+        i = int(np.floor((x + self.map_delta_x) / self.map_resolution))
+        j = int(np.floor((y + self.map_delta_y)/ self.map_resolution))
+        return i, j
+
+    def ij_to_xy(self, i, j):
+        x =  i*self.map_resolution - self.map_delta_x
+        y = j*self.map_resolution - self.map_delta_y
+        return x, y
