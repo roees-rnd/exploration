@@ -31,13 +31,23 @@ class ExplorationCalss:
         #self.graph = Graph()
         #self.chose_mission = ChoseExplorationPointClass()
 
+        self.map = None
+
+    def saveMap(self, msg):
+        if self.map is None:
+            self.map = MapInfo(msg.info.width, msg.info.height, msg.info.resolution,
+                               msg.info.origin.position.x, msg.info.origin.position.y, msg.info.origin.position.z)
+        self.map.set_map(msg.data)
+
+
 
     def do_step(self, mapData):
-        current_frontiers = self.frontiers.do_step(mapData)
+        self.saveMap(mapData)
+        current_frontiers = self.frontiers.do_step(self.map)
         self.publish_frontiers(current_frontiers)
         nodes_to_add = self.frontiers.new_frontiers
         nodes_to_remove = self.frontiers.irrelevant_frontiers
-        #self.graph.update(nodes_to_add, nodes_to_remove)
+        #self.graph.update(self.map, nodes_to_add, nodes_to_remove)
         #currentTarget = self.chose_mission.do_step(self.graph, currentPos, current_frontiers)
         #path = self.graph.route(currentPos, currentTarget)
 
