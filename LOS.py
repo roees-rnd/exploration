@@ -29,8 +29,8 @@ def is_LOS(x1,y1,x2,y2, obsmap):
     # fig = plt.figure()
     # ax1 = fig.add_subplot(111)
     # ax1.imshow(obsmap)
-    # plt.scatter(x1, y1, s=25, c='red', marker='o')
-    # plt.scatter(x2, y2, s=25, c='red', marker='o')
+    plt.scatter(x1, y1, s=25, c='red', marker='o')
+    plt.scatter(x2, y2, s=25, c='red', marker='o')
     # plt.show()
 
     if(obsmap[x1,y1]==True or obsmap[x2,y2]==True):
@@ -52,4 +52,3 @@ def is_LOS(x1,y1,x2,y2, obsmap):
 
     return True
 
-    
