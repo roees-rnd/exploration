@@ -56,7 +56,7 @@ class net_db:
         new_ij = map_info.xy_to_ij(xy[0], xy[1])
         for n in list(self.G.nodes()):
             n_ij = map_info.xy_to_ij(n[0], n[1])
-            if LOS.is_LOS(new_ij[0], new_ij[1], n_ij[0], n_ij[1], map_info.map):
+            if LOS.is_LOS(new_ij[0], new_ij[1], n_ij[0], n_ij[1], np.abs(map_info.map)>0):
                 w = np.sqrt(np.square(n[0]-xy[0])+np.square(n[1]-xy[1]))
                 self.G.add_edge(xy, n, weight=w)
                 if node_added is False:
