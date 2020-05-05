@@ -31,7 +31,7 @@ class net_db:
                         self.G.add_node(xy)
                         self.G.add_edge(xy, self.last_node, weight=weight)
                     else:
-                        self.add_node_map(self.map_info, xy)
+                        self.add_node_map(xy)
 
                 else:
                     if not self.G.has_edge(self.last_node, nae[0]):
@@ -51,18 +51,22 @@ class net_db:
         self.num_nodes += 1
         return True
 
-    def add_node_map(self, map_info, xy):
+    def add_node_map(self, xy):
         node_added = False
-        new_ij = map_info.xy_to_ij(xy[0], xy[1])
+        if self.map_info is None:
+            return False
+        
+        new_ij = self.map_info.xy_to_ij(xy[0], xy[1])
         for n in list(self.G.nodes()):
-            n_ij = map_info.xy_to_ij(n[0], n[1])
-            if LOS.is_LOS(new_ij[0], new_ij[1], n_ij[0], n_ij[1], np.abs(map_info.map)>0):
+            n_ij = self.map_info.xy_to_ij(n[0], n[1])
+            if LOS.is_LOS(new_ij[0], new_ij[1], n_ij[0], n_ij[1], np.abs(self.map_info.map)>0):
                 w = np.sqrt(np.square(n[0]-xy[0])+np.square(n[1]-xy[1]))
                 self.G.add_edge(xy, n, weight=w)
                 if node_added is False:
                     nx.set_node_attributes(self.G, {xy: {'is_door': False}})
                     node_added = True
                     self.num_nodes += 1
+        return node_added
 
     # def connect_node(self, map, xy):
 

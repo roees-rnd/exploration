@@ -98,17 +98,18 @@ class FrontierClass:
 			ax1.imshow(edges)
 			plt.show()
 
-		im2, contours, hierarchy = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		contours, hierarchy = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 		cv2.drawContours(o, contours, -1, (255,255,255), 5)
 		o=cv2.bitwise_not(o) 
 		res = cv2.bitwise_and(o,edges)
 		#------------------------------
 
 		frontier=copy.deepcopy(res)
-		im2, contours, hierarchy = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		contours, hierarchy = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 		cv2.drawContours(frontier, contours, -1, (255,255,255), 2)
 
-		im2, contours, hierarchy = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		contours, hierarchy = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		im2 = cv2.drawContours(frontier, contours, -1, (255, 0, 0))
 		self.map_of_contours = im2
 
 		if self.DEBUG_FLAG:

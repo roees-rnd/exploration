@@ -46,13 +46,17 @@ class ExplorationCalss:
 
     def do_step(self, mapData):
         self.saveMap(mapData)
-        # current_frontiers = self.frontiers.do_step(self.map)
-        # self.publish_frontiers(current_frontiers)
-        # nodes_to_add = self.frontiers.new_frontiers
+        current_frontiers = self.frontiers.do_step(self.map)
+        self.publish_frontiers(current_frontiers)
+        nodes_to_add = self.frontiers.new_frontiers
+        for n in current_frontiers:  # nodes_to_add:
+            self.buildGraph.ndb.add_node_map((n[0], n[1]))
         # nodes_to_remove = self.frontiers.irrelevant_frontiers
         #self.graph.update(self.map, nodes_to_add, nodes_to_remove)
-        #currentTarget = self.chose_mission.do_step(self.graph, currentPos, current_frontiers)
+        # currentTarget = self.chose_mission.do_step(self.graph, currentPos, current_frontiers)
         #path = self.graph.route(currentPos, currentTarget)
+
+        # node_list, weights = self.buildGraph.ndb.get_path(src, trg)
         if False:
             self.buildGraph.ndb.add_node_map(self.map,(0.6, -0.5))
 
