@@ -11,6 +11,8 @@ import numpy as np
 from Frontiers import FrontierClass
 import buildGraph
 
+# import sys
+# sys.path.append("/home/roee/catkin_ws/src/exploration/env/lib/python3.6/site-packages")
 
 class ExplorationCalss:
     def __init__(self):

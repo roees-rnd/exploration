@@ -18,6 +18,7 @@ import numpy as np
 class buildGraph:
     def __init__(self):
         rospy.Subscriber('/slam_out_pose', PoseStamped, self.updatePos)
+        # rospy.Subscriber('/clicked_point', PoseStamped, self.path_to_target)
         self.ndb = net_db.net_db()
         self.pubNodes = rospy.Publisher('/pubNodes', Marker, queue_size=10)
 
@@ -48,6 +49,16 @@ class buildGraph:
 
         marker.lifetime = rospy.Duration(1)
         self.pubNodes.publish(marker)    
+
+    def path_to_target(self, msg):
+        x = msg.point.x
+        y = msg.point.y
+        nodes = self.ndb.nodes_are_eq((x, y), thresh=0.3)
+        if len(nodes)>0 and (self.ndb.last_node is not None):
+            trg = tuple(nodes[0])
+            src = self.ndb.last_node
+            node_list, weights = self.ndb.get_path()
+
 
 
 if __name__ == "__main__":
