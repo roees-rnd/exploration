@@ -204,14 +204,39 @@ class FrontierClass:
 
 		shifted_frontiers = []
 		for p in current_frontiers:
+			
 			#TODO: add logic
 			#if p in BB_door- change p to be door
+			#shifted_p = self.move_point_to_free(p)
+			#shifted_frontiers.append(shifted_p)
 			shifted_frontiers.append(p)
-
+			
 		# #print before and after shift
 		# self.print_frontiers(self.list_of_frontiers, shifted_frontiers)
 		
 		return shifted_frontiers
+
+	def move_point_to_free(self, p):
+		BB_margin = 3
+		pi,pj = self.mapInfo.xy_to_ij(p[0],p[1])
+		if self.mapInfo.map[pj,pi] ==-1:
+			s = self.mapInfo.map[(-BB_margin+pj):(pj+BB_margin),(-BB_margin+pi):(pi+BB_margin)]
+			free_points_in_s = np.where(s==0)
+			first_free_point_s_index_x = free_points_in_s[0][0]
+			first_free_point_full_index_x = first_free_point_s_index_x+pj-BB_margin
+
+			first_free_point_s_index_y = free_points_in_s[1][0]
+			first_free_point_full_index_y = first_free_point_s_index_x+pi-BB_margin
+			px, py = self.mapInfo.ij_to_xy(first_free_point_full_index_x, first_free_point_full_index_y)
+			return np.array([px,py])
+
+		return p
+		fig = plt.figure()
+		ax1 = fig.add_subplot(122)
+		self.mapInfo.map[pj,pi]=200
+		self.mapInfo.map[first_free_point_full_index_x,first_free_point_full_index_y]=300
+		ax1.imshow(self.mapInfo.map)
+		plt.show()
 
 	
 	def shift_frontiers(self, new_FL):
@@ -254,8 +279,6 @@ class FrontierClass:
 	def is_point_still_frontier(self, p):
 		BB_margin = 5
 		p_x, p_y = self.mapInfo.xy_to_ij(p[0], p[1])
-		# p_x = (p[0]+self.mapData_delta_x)/self.mapData_resolution
-		# p_y = (p[1]+self.mapData_delta_y)/self.mapData_resolution
 		slice_contours = self.map_of_contours[(-BB_margin+int(p_y)):(BB_margin+int(p_y)), (-BB_margin+int(p_x)):(BB_margin+int(p_x))]
 		s = np.sum(slice_contours)
 		if(s==0):
