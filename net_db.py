@@ -101,63 +101,46 @@ class net_db:
         rng = np.linalg.norm(diff, axis=1)
         return [n for n, r in zip(list(self.G.nodes), rng) if r < thresh]
 
+    def get_path(self, src, trg):
+        node_list = nx.dijkstra_path(self.G, src, trg)
+        weights  = [self.G.get_edge_data(node_list[i],node_list[i+1])['weight'] for i in range(len(node_list)-1) ]
+        return node_list, weights
 
 if __name__ == "__main__":
     import net_db
+    import pickle
+    import networkx as nx
     from nav_msgs.msg import OccupancyGrid as og
     ogMsg = og()
     ogMsg.data = np.zeros((512, 512, 1))
-    ndb = net_db.net_db()
-    ndb.add_node((0, 0.1), False)
-    ndb.add_node((-5, 0.1), False)
-    ndb.add_node((2, 0.1), True)
 
-    map_info = mapi.MapInfo(width=512, height=512, res=0.1, x=0, y=0, z=0)
-    # map_data = np.reshape(np.zeros((512, 512, 1), dtype=np.uint8), (512*512,) )#  np.array([0]*512*512, dtype=np.uint8)
-    map_info.set_map(ogMsg.data)
-    ndb.add_node_map(map_info, (0.2, 5))
-    ndb.show_graph()
+    if True:
+        with open('ndb.pickle', 'rb') as handle:
+            ndb = pickle.load(handle)
+    else:
+        ndb = net_db.net_db()
+        ndb.add_node((0, 0.1), False)
+        ndb.add_node((-5, 0.1), False)
+        ndb.add_node((2, 0.1), True)
+
+        map_info = mapi.MapInfo(width=512, height=512, res=0.1, x=0, y=0, z=0)
+        # map_data = np.reshape(np.zeros((512, 512, 1), dtype=np.uint8), (512*512,) )#  np.array([0]*512*512, dtype=np.uint8)
+        map_info.set_map(ogMsg.data)
+        ndb.add_node_map(map_info, (0.2, 5))
+        ndb.show_graph()
+    
+    AAA = ndb.get_all_nodes()
+    node_list, weights = ndb.get_path(tuple(AAA[0][1]), tuple(AAA[0][16]))
+    edges  = [(node_list[i],node_list[i+1]) for i in range(len(node_list)-1) ]
+    pos = {x: list(x) for x in ndb.G.nodes}
+    
+    nx.draw_networkx_nodes(ndb.G, pos, node_size=500)
+    nx.draw_networkx_nodes(ndb.G, pos, nodelist=node_list, node_color='r', node_size=800)
+    nx.draw_networkx_edges(ndb.G, pos,
+                            width=6, alpha=0.5, edge_color='b', style='solid')
+    nx.draw_networkx_edges(ndb.G, pos, edgelist=edges,
+                            width=8, alpha=0.5, edge_color='r', style='solid')
+    plt.show()
+    
+
     print("end")
-
-# if True:
-#     G = nx.Graph()
-#     if False:
-#         G.add_edge('A', 'B', weight=4)
-#         G.add_edge('B', 'D', weight=2)
-#         G.add_edge('A', 'C', weight=3)
-#         G.add_edge('C', 'D', weight=4)
-#         print(nx.shortest_path(G, 'A', 'D', weight='weight'))
-
-#         attrs = {'A': {'isDoor': False}}
-#         nx.set_node_attributes(G, attrs)
-#         print("Node A isDoor attribute = " + str(G.nodes['A']['isDoor']))
-
-#     else:
-#         A = (1.2, 3)
-#         B = (3.5, 6)
-#         C = (7.8, 2.1)
-#         D = (5, -2)
-#         G.add_edge(nodes['A']['xy'], nodes['B']['xy'], weight=4)
-#         G.add_edge(B, D, weight=2)
-#         G.add_edge(nodes['A']['xy'], C, weight=3)
-#         G.add_edge(C, D, weight=4, attr1=False)
-#         print(nx.shortest_path(G, A, D, weight='weight'))
-#         # G.get_edge_data(A,B)
-#         # G.update(edges=)
-
-#         attrs = {A: {'isDoor': False}}
-#         nx.set_node_attributes(G, attrs)
-#         print("Node A isDoor attribute = " + str(G.nodes[A]['isDoor']))
-
-#     # G.add_node()
-# else:
-#     G = nx.cubical_graph()
-#     pos = nx.spring_layout(G)
-#     print(nx.shortest_path(G, 1, 5))
-
-
-# labels = nx.get_node_attributes(G, 'isDoor')
-# nx.draw(G)
-# # nx.draw(G, pos=nx.spring_layout(G))
-# plt.draw()
-# plt.show()
