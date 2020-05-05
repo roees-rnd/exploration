@@ -22,19 +22,13 @@ class FrontierClass:
 		self.list_of_frontiers = []
 		self.new_frontiers = []
 		self.irrelevant_frontiers = []
+		self.irrelevant_frontiers_full_run = []
 		self.map_of_contours = []
-
+		self.mapInfo = []
 
 		# # publishers
 		# self.PubFrontier = rospy.Publisher('/path_planner/frontiers', PoseArray, queue_size=1)  # list of frontiers to publish
-		# # PubVer.publish(version)
-		# # rospy.set_param('/version/path_planner', version)
-
-
-		# 	# subdcribers
-		# # rospy.Subscriber('/localization/out/pose', PoseStamped, self.save_self_pos) # saves self.pos
-		# # rospy.Subscriber('/mavros/local_position/pose',
-		# # 					PoseStamped, self.save_self_pos)  # saves self.pos
+		# Subscribers
 		# rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
 
 
@@ -71,16 +65,7 @@ class FrontierClass:
 		data = self.mapInfo.map
 		# self.mapData_w=mapData.info.width
 		# self.mapData_h=mapData.info.height
-		self.mapData_resolution=mapInfo.map_resolution
-		self.mapData_delta_x=mapInfo.map_delta_x
-		self.mapData_delta_y=mapInfo.map_delta_y
-		self.mapData_data = copy.deepcopy(mapInfo.map)
-		# self.mapData_w=mapData.info.width
-		# self.mapData_h=mapData.info.height
-		# self.mapData_resolution=mapData.info.resolution
-		# self.mapData_delta_x=mapData.info.origin.position.x
-		# self.mapData_delta_y=mapData.info.origin.position.y
-		# self.mapData_data = copy.deepcopy(mapData.data)
+
 			
 		img = np.zeros((mapInfo.map_sizeY, mapInfo.map_sizeX, 1), np.uint8)
 
@@ -175,7 +160,7 @@ class FrontierClass:
 
 
 	def print_frontiers(self, point_list_1, point_list_2=[]):
-		grid = copy.deepcopy(self.mapData_data)
+		grid = copy.deepcopy(self.mapInfo.map)
 		#grid = np.reshape(copy.deepcopy(self.mapData_data), (self.mapData_w ,self.mapData_h))
 		grid[np.where(grid == -1)] = 150
 		fig = plt.figure()
@@ -183,46 +168,64 @@ class FrontierClass:
 		ax1.imshow(grid)
 		#plot points in point_list_1
 		for a in range(len(point_list_1)):
-			plt.scatter(
-			(point_list_1[a][0]-self.mapData_delta_x)/self.mapData_resolution, (point_list_1[a][1]-self.mapData_delta_y)/self.mapData_resolution, s=25, c='white', marker='o')
+			i, j = self.mapInfo.xy_to_ij(point_list_1[a][0], point_list_1[a][1])
+			plt.scatter(i, j, s=25, c='white', marker='o')
 
 		#plot points in point_list_2
 		if (point_list_2!=[]):
 			ax2 = fig.add_subplot(121)
 			ax2.imshow(grid)
 			for a in range(len(point_list_2)):
-				plt.scatter(
-					(point_list_2[a][0]-self.mapData_delta_x)/self.mapData_resolution, (point_list_2[a][1]-self.mapData_delta_y)/self.mapData_resolution, s=25, c='white', marker='o')
-
+				i, j = self.mapInfo.xy_to_ij(point_list_2[a][0], point_list_2[a][1])
+				plt.scatter(i, j, s=25, c='white', marker='o')
 
 		plt.show()
 
 	def add_frontier_context(self, current_frontiers):
 		if current_frontiers==[]:
 			print("no frontiers found!")
-			return
+			return []
 
 		shifted_frontiers = []
 		for p in current_frontiers:
+			
 			#TODO: add logic
 			#if p in BB_door- change p to be door
+			#shifted_p = self.move_point_to_free(p)
+			#shifted_frontiers.append(shifted_p)
 			shifted_frontiers.append(p)
-
+			
 		# #print before and after shift
 		# self.print_frontiers(self.list_of_frontiers, shifted_frontiers)
 		
 		return shifted_frontiers
 
+	def move_point_to_free(self, p):
+		BB_margin = 3
+		pi,pj = self.mapInfo.xy_to_ij(p[0],p[1])
+		if self.mapInfo.map[pj,pi] ==-1:
+			s = self.mapInfo.map[(-BB_margin+pj):(pj+BB_margin),(-BB_margin+pi):(pi+BB_margin)]
+			free_points_in_s = np.where(s==0)
+			first_free_point_s_index_x = free_points_in_s[0][0]
+			first_free_point_full_index_x = first_free_point_s_index_x+pj-BB_margin
+
+			first_free_point_s_index_y = free_points_in_s[1][0]
+			first_free_point_full_index_y = first_free_point_s_index_x+pi-BB_margin
+			px, py = self.mapInfo.ij_to_xy(first_free_point_full_index_x, first_free_point_full_index_y)
+			return np.array([px,py])
+
+		return p
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		self.mapInfo.map[pj,pi]=200
+		self.mapInfo.map[first_free_point_full_index_x,first_free_point_full_index_y]=300
+		ax1.imshow(self.mapInfo.map)
+		plt.show()
+
 	
 	def shift_frontiers(self, new_FL):
 		frontier_context = self.add_frontier_context()
 		return frontier_context
-
-	def chose_frontier_to_explore(self):
-		candidates = self.list_of_frontiers
-		if candidates==[]:
-			print("no frontiers to chose from....")
-			return
 
 	def add_new_frontiers_to_FL(self, new_FL):
 		old_FL = self.list_of_frontiers
@@ -252,31 +255,43 @@ class FrontierClass:
 
 
 	def is_point_still_frontier(self, p):
-		BB_margin = 5
-		p_x, p_y = self.mapInfo.xy_to_ij(p[0], p[1])
-		# p_x = (p[0]+self.mapData_delta_x)/self.mapData_resolution
-		# p_y = (p[1]+self.mapData_delta_y)/self.mapData_resolution
-		slice_contours = self.map_of_contours[(-BB_margin+int(p_y)):(BB_margin+int(p_y)), (-BB_margin+int(p_x)):(BB_margin+int(p_x))]
+		BB_margin = 3
+		pi, pj = self.mapInfo.xy_to_ij(p[0], p[1])
+		slice_contours = self.map_of_contours[(-BB_margin+int(pj)):(BB_margin+int(pj)), (-BB_margin+int(pi)):(BB_margin+int(pi))]
 		s = np.sum(slice_contours)
-		if(s==0):
+		if s == 0:
 			return False
 			if self.DEBUG_FLAG:
 				# print contours
-				cv2.imshow('image',slice_contours)
-				cv2.waitKey(0)
+				fig = plt.figure()
+				ax1 = fig.add_subplot(111)
+				ax1.imshow(slice_contours)
+				plt.show()
+				# cv2.imshow('image',slice_contours)
+				# cv2.waitKey(0)
+
+				fig = plt.figure()
+				ax1 = fig.add_subplot(111)
+				map_of_contours = copy.deepcopy(self.map_of_contours)
+				map_of_contours[pj, pi]=200
+				ax1.imshow(map_of_contours)
+				plt.show()
 		return True
 
 	def remove_irrelevant_frontiers(self):
 		relevant_frontiers=[]
+		irrelevant_frontiers = []
 		if self.list_of_frontiers is None:
 			return []
 		for p in self.list_of_frontiers:
 			if self.is_point_still_frontier(p):
 				relevant_frontiers.append(p)
 			else:
-				self.irrelevant_frontiers.append(p)
+				irrelevant_frontiers.append(p)
 				print("point: ", p, " is no longer frontier!")
 		self.list_of_frontiers = relevant_frontiers
+		self.irrelevant_frontiers = irrelevant_frontiers
+		self.irrelevant_frontiers_full_run = self.irrelevant_frontiers_full_run + irrelevant_frontiers
 		return relevant_frontiers
 
 
