@@ -28,6 +28,8 @@ class ExplorationCalss:
         rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
 
         self.frontiers = FrontierClass()
+        self.current_frontiers = []
+        self.route_to_point = []
         #self.graph = Graph()
         #self.chose_mission = ChoseExplorationPointClass()
 
@@ -43,13 +45,25 @@ class ExplorationCalss:
 
     def do_step(self, mapData):
         self.saveMap(mapData)
-        current_frontiers = self.frontiers.do_step(self.map)
-        self.publish_frontiers(current_frontiers)
+        self.current_frontiers = self.frontiers.do_step(self.map)
+        #self.publish_frontiers(self.current_frontiers)
         nodes_to_add = self.frontiers.new_frontiers
         nodes_to_remove = self.frontiers.irrelevant_frontiers
         #self.graph.update(self.map, nodes_to_add, nodes_to_remove)
-        #currentTarget = self.chose_mission.do_step(self.graph, currentPos, current_frontiers)
+        #currentTarget = self.chose_mission.do_step(self.graph, currentPos, self.current_frontiers)
         #path = self.graph.route(currentPos, currentTarget)
+
+    def route_to_point(self, goal):
+        self.route_to_point = goal
+        path = self.graph.route(goal)
+        return path
+
+    def route_to_best_frontier(self):
+        currentTarget = self.chose_mission.do_step(self.graph, current_frontiers)
+        self.route_to_point = currentTarget
+        path = self.graph.route(currentTarget)
+        return path
+
 
     def publish_frontiers(self, frontiers_list):
 		msgOut = PoseArray()
