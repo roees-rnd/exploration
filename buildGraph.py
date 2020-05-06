@@ -52,7 +52,7 @@ class buildGraph:
         marker.lifetime = rospy.Duration(1)
         self.pubNodes.publish(marker)
 
-    def publishPath(self, pub_ns='net', stamp=None, frame_id='world', size=0.03, numLmks=0):
+    def publishPath(self, pub_ns='net', stamp=None, frame_id='world', size=0.1, numLmks=0):
         marker = Marker(type=Marker.LINE_LIST, ns=pub_ns, action=Marker.ADD)
         marker.header.frame_id = frame_id
         marker.header.stamp = stamp if stamp is not None else rospy.Time.now()
