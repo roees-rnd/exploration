@@ -10,6 +10,8 @@ from MapInfo import MapInfo
 from geometry_msgs.msg import PoseArray, PoseStamped, WrenchStamped, Pose
 import time
 import numpy as np
+import sys
+sys.path.append("/usr/lib/python3/dist-packages")  # this is for raspi cv2 (already installed outside venv)
 import cv2
 import matplotlib.pyplot as plt
 from sklearn.cluster import MeanShift, AffinityPropagation

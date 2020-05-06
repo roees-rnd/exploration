@@ -18,7 +18,7 @@ import numpy as np
 class buildGraph:
     def __init__(self):
         rospy.Subscriber('/slam_out_pose', PoseStamped, self.updatePos)
-        # rospy.Subscriber('/clicked_point', PoseStamped, self.path_to_target)
+        rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.publishPath)
         self.ndb = net_db.net_db()
         self.pubNodes = rospy.Publisher('/pubNodes', Marker, queue_size=10)
         self.pubPath = rospy.Publisher('/pubPath', Marker, queue_size=10)
@@ -28,7 +28,6 @@ class buildGraph:
         y = msg.pose.position.y
         self.ndb.add_node((x, y))
         self.publishGraph(frame_id='map')
-        self.publishPath(frame_id='map')
 
 
     def publishGraph(self, pub_ns='net', stamp=None, frame_id='world', size=0.03, numLmks=0):
@@ -52,7 +51,10 @@ class buildGraph:
         marker.lifetime = rospy.Duration(1)
         self.pubNodes.publish(marker)
 
-    def publishPath(self, pub_ns='net', stamp=None, frame_id='world', size=0.1, numLmks=0):
+    def publishPath(self, msg, pub_ns='net', stamp=None, frame_id='map', size=0.1, numLmks=0):
+        if False:  # TODO: remove (for debug only)
+            print('path to target choosen')
+            return
         marker = Marker(type=Marker.LINE_LIST, ns=pub_ns, action=Marker.ADD)
         marker.header.frame_id = frame_id
         marker.header.stamp = stamp if stamp is not None else rospy.Time.now()
@@ -64,7 +66,15 @@ class buildGraph:
         marker.pose.position = geom_msg.Point(0, 0, 0)
         marker.pose.orientation = geom_msg.Quaternion(0, 0, 0, 1)
 
-        node_list = self.path_to_target((0, 0))
+        xy = (msg.pose.position.x, msg.pose.position.y)
+        nodes, rng = self.ndb.nodes_are_eq(xy, thresh=0.5)
+        if len(nodes)<1:
+            return
+        else:
+            print("sasa")
+
+
+        node_list = self.path_to_target(nodes[0])
         marker.points = []
         if node_list is None:
             return
@@ -73,11 +83,11 @@ class buildGraph:
             marker.points.extend([geom_msg.Point(node_list[i-1][0], node_list[i-1][1], 0),
                                 geom_msg.Point(node_list[i][0], node_list[i][1], 0)])
 
-        marker.lifetime = rospy.Duration(1)
+        # marker.lifetime = rospy.Duration(5)
         self.pubPath.publish(marker)
 
     def path_to_target(self, xy):
-        nodes = self.ndb.nodes_are_eq(xy, thresh=0.5)
+        nodes, _ = self.ndb.nodes_are_eq(xy, thresh=0.5)
         if len(nodes)>0 and (self.ndb.last_node is not None):
             trg = tuple(nodes[0])
             src = self.ndb.last_node

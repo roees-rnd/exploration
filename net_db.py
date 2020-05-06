@@ -25,7 +25,7 @@ class net_db:
             # If we are far enough from last node:
             if weight > self._min_dist:
                 # If current position is far enough from all other nodes:
-                nae = self.nodes_are_eq(xy, self._min_dist/2)
+                nae, _ = self.nodes_are_eq(xy, self._min_dist/2)
                 if len(nae) < 1:  # no close nodes
                     if self.map_info is None:
                         self.G.add_node(xy)
@@ -56,6 +56,12 @@ class net_db:
         if self.map_info is None:
             return False
         
+        #  TODO: if node is close to any other node, then return without adding
+        eq_nodes, _ = self.nodes_are_eq(xy, thresh=0.2)
+        if len(eq_nodes)>0:
+            return False
+
+
         new_ij = self.map_info.xy_to_ij(xy[0], xy[1])
         for n in list(self.G.nodes()):
             n_ij = self.map_info.xy_to_ij(n[0], n[1])
@@ -103,7 +109,7 @@ class net_db:
         diff = np.array(list(self.G.nodes))-np.array(na)
         # np.sqrt(np.sum(np.square(diff), axis=1))
         rng = np.linalg.norm(diff, axis=1)
-        return [n for n, r in zip(list(self.G.nodes), rng) if r < thresh]
+        return [n for n, r in zip(list(self.G.nodes), rng) if r < thresh], [r for n, r in zip(list(self.G.nodes), rng) if r < thresh]
 
     def get_path(self, src, trg):
         node_list = nx.dijkstra_path(self.G, src, trg)
