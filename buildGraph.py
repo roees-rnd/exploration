@@ -52,9 +52,6 @@ class buildGraph:
         self.pubNodes.publish(marker)
 
     def publishPath(self, msg, pub_ns='net', stamp=None, frame_id='map', size=0.1, numLmks=0):
-        if False:  # TODO: remove (for debug only)
-            print('path to target choosen')
-            return
         marker = Marker(type=Marker.LINE_LIST, ns=pub_ns, action=Marker.ADD)
         marker.header.frame_id = frame_id
         marker.header.stamp = stamp if stamp is not None else rospy.Time.now()
