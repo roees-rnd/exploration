@@ -47,6 +47,7 @@ class PathPlannerClass:
             exit(0)
 
          # subdcribers
+        rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.route_from_exp)
         rospy.Subscriber('/localization/out/pose', PoseStamped, self.save_self_pos) # saves self.pos
         rospy.Subscriber('/wp_provider/path_planner/set_point', PoseStamped, self.save_goal_pos) # saves position of goal point 
         rospy.Subscriber('/wp_handler/out/status', String, self.get_exection_status) #  recives from wp_handler: ['IDLE', 'PROCESSING', 'FINISHED', 'FAILURE']
@@ -54,6 +55,7 @@ class PathPlannerClass:
         #rospy.Subscriber("/map", OccupancyGrid, callback=self.get_map)
         
         rospy.Timer(rospy.Duration(1),self.SendStatus)
+
 
     def GetParams(self):
         # for prm in self.params.keys():
@@ -95,11 +97,11 @@ class PathPlannerClass:
                 msg_out.poses.append(msg.pose)
                 self.PubRoute.publish(msg_out)
 
-                
-            # if self.mode_msg=="EXPLORATION":
-            #     self.explortion.route_to_point(pointFromRvis)
-
-
+    def route_from_exp(self, msg):
+        if self.mode_msg == "EXPLORATION":
+            xy = (msg.pose.position.x, msg.pose.position.y)
+            pose_array = self.exploration.buildGraph.getPoseArrayToTarget_as_poseArray(xy, vis=True)
+            self.PubRoute.publish(pose_array)
         
 
     def get_exection_status(self, msg):
