@@ -31,6 +31,8 @@ class ExplorationCalss:
         rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
 
         self.frontiers = FrontierClass()
+        self.current_frontiers = []
+        self.route_to_point = []
         #self.graph = Graph()
         #self.chose_mission = ChoseExplorationPointClass()
         self.buildGraph = buildGraph.buildGraph()
@@ -46,19 +48,40 @@ class ExplorationCalss:
 
     def do_step(self, mapData):
         self.saveMap(mapData)
-        current_frontiers = self.frontiers.do_step(self.map)
-        self.publish_frontiers(current_frontiers)
+        self.current_frontiers = self.frontiers.do_step(self.map)
+        #self.publish_frontiers(self.current_frontiers)
         nodes_to_add = self.frontiers.new_frontiers
         for n in current_frontiers:  # nodes_to_add:
             self.buildGraph.ndb.add_node_map((n[0], n[1]))
         # nodes_to_remove = self.frontiers.irrelevant_frontiers
         #self.graph.update(self.map, nodes_to_add, nodes_to_remove)
-        # currentTarget = self.chose_mission.do_step(self.graph, currentPos, current_frontiers)
+        #currentTarget = self.chose_mission.do_step(self.graph, currentPos, self.current_frontiers)
         #path = self.graph.route(currentPos, currentTarget)
 
-        # node_list, weights = self.buildGraph.ndb.get_path(src, trg)
-        if False:
-            self.buildGraph.ndb.add_node_map(self.map,(0.6, -0.5))
+    def route_to_point(self, goal):
+        self.route_to_point = goal
+        path = self.graph.route(goal)
+        return path
+
+    def route_to_best_frontier(self):
+        currentTarget = self.chose_mission.do_step(self.graph, current_frontiers)
+        self.route_to_point = currentTarget
+        path = self.graph.route(currentTarget)
+        return path
+
+
+    def publish_frontiers(self, frontiers_list):
+		msgOut = PoseArray()
+		msgOut.header.frame_id = 'map'
+		msgOut.header.stamp = rospy.Time.now()
+		pose = Pose()
+		for i in range(len(frontiers_list)):
+			pose.position.x = frontiers_list[i][0]
+			pose.position.y = frontiers_list[i][1]
+			pose.position.z = 0.7
+			pose.orientation.w = 1
+			msgOut.poses.append(copy.deepcopy(pose))
+		self.PubFrontier.publish(msgOut)
 
     def publish_frontiers(self, frontiers_list):
         msgOut = PoseArray()
