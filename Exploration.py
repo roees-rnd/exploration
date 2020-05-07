@@ -37,7 +37,7 @@ class ExplorationCalss:
         #self.chose_mission = ChoseExplorationPointClass()
         self.buildGraph = buildGraph.buildGraph()
         rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
-        rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.route_from_exp)
+        # rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.route_from_exp)
 
 
         self.map = None
