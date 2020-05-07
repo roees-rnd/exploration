@@ -1,3 +1,4 @@
+#!/home/ubuntu/catkin_ws_s/src/exploration/env/bin/python
 
 import copy
 import rospy
