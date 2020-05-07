@@ -31,8 +31,9 @@ class net_db:
                         self.G.add_node(xy)
                         self.G.add_edge(xy, self.last_node, weight=weight)
                     else:
-                        self.add_node_map(xy)
-
+                        added_node = self.add_node_map(xy)
+                        if not added_node:
+                            self.G.add_edge(xy, self.last_node, weight=weight)
                 else:
                     if not self.G.has_edge(self.last_node, nae[0]):
                         w = np.sqrt(
