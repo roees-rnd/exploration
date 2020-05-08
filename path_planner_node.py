@@ -8,7 +8,7 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 #from tf.transformations import euler_from_quaternion, quaternion_from_euler
 import numpy as np
 from nav_msgs.msg import OccupancyGrid
-from Exploration import ExplorationCalss
+from Exploration import ExplorationClass
 import math
 
 class PathPlannerClass:
@@ -29,7 +29,7 @@ class PathPlannerClass:
         # self.status_msgs = ['NOT_OPERATIONAL', 'PROCESSING', 'INVALID_SETPOINT', 'FINISHED', 'EXECUTING', 'NO_VALID_ROUTE'] # make sure its ok with Alex
         self.exection_status_msg = 'IDLE'
         self.mode_msg = 'GOTO'
-        self.explortion = ExplorationCalss()
+        self.exploration = ExplorationClass(TIMING=True)
 
         self.params = {'distance_converge_last_point_m': 0.0,
                         'distance_converge_m': 0.0,
@@ -81,7 +81,6 @@ class PathPlannerClass:
         self.drone_pos[0]= msg.pose.position.x
         self.drone_pos[1]= msg.pose.position.y
         self.drone_pos[2]= msg.pose.position.z
-        A = np.array([msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w])
         self.drone_yaw = self.euler_from_quaternion(np.array([msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w]))[2]
 
     def save_goal_pos(self, msg):

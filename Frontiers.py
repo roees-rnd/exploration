@@ -45,7 +45,7 @@ class FrontierClass:
 
 
 	def cluster_points(self, all_pts):
-		front = copy.deepcopy(all_pts)
+		# front = copy.deepcopy(all_pts)
 		if len(all_pts)>1:
 			# ms = MeanShift(bandwidth=0.3, bin_seeding=True)   
 			# ms.fit(front)
@@ -100,18 +100,18 @@ class FrontierClass:
 			ax1.imshow(edges)
 			plt.show()
 
-		_, contours, hierarchy = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		contours, _ = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 		cv2.drawContours(o, contours, -1, (255,255,255), 5)
 		o=cv2.bitwise_not(o) 
 		res = cv2.bitwise_and(o,edges)
 		#------------------------------
 
 		frontier=copy.deepcopy(res)
-		_, contours, hierarchy = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 		cv2.drawContours(frontier, contours, -1, (255,255,255), 2)
 
-		im2, contours, hierarchy = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-		#im2 = cv2.drawContours(frontier, contours, -1, (255, 0, 0))
+		contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		im2 = cv2.drawContours(frontier, contours, -1, (255, 0, 0))
 		self.map_of_contours = im2
 
 		if self.DEBUG_FLAG:
@@ -218,16 +218,16 @@ class FrontierClass:
 			return np.array([px,py])
 
 		return p
-		fig = plt.figure()
-		ax1 = fig.add_subplot(111)
-		self.mapInfo.map[pj,pi]=200
-		self.mapInfo.map[first_free_point_full_index_x,first_free_point_full_index_y]=300
-		ax1.imshow(self.mapInfo.map)
-		plt.show()
+		# fig = plt.figure()
+		# ax1 = fig.add_subplot(111)
+		# self.mapInfo.map[pj,pi]=200
+		# self.mapInfo.map[first_free_point_full_index_x,first_free_point_full_index_y]=300
+		# ax1.imshow(self.mapInfo.map)
+		# plt.show()
 
 	
 	def shift_frontiers(self, new_FL):
-		frontier_context = self.add_frontier_context()
+		frontier_context = self.add_frontier_context(list())
 		return frontier_context
 
 	def add_new_frontiers_to_FL(self, new_FL):
@@ -263,7 +263,6 @@ class FrontierClass:
 		slice_contours = self.map_of_contours[(-BB_margin+int(pj)):(BB_margin+int(pj)), (-BB_margin+int(pi)):(BB_margin+int(pi))]
 		s = np.sum(slice_contours)
 		if s == 0:
-			return False
 			if self.DEBUG_FLAG:
 				# print contours
 				fig = plt.figure()
@@ -279,6 +278,7 @@ class FrontierClass:
 				map_of_contours[pj, pi]=200
 				ax1.imshow(map_of_contours)
 				plt.show()
+			return False
 		return True
 
 	def remove_irrelevant_frontiers(self):

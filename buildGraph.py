@@ -10,25 +10,36 @@ from geometry_msgs import msg as geom_msg
 import numpy as np
 import copy
 
+import datetime
+
 
 # ndb.add_node((0, 0.1), False)
 # ndb.add_node((2, 0.1), True)
 # pos, is_door = ndb.get_all_nodes()
 
 class buildGraph:
-    def __init__(self):
+    def __init__(self, TIMING=False):
         rospy.Subscriber('/slam_out_pose', PoseStamped, self.updatePos)
         # rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.publishPath)
         self.ndb = net_db.net_db()
         self.pubNodes = rospy.Publisher('/pubNodes', Marker, queue_size=10)
         self.pubPathMarker = rospy.Publisher('/pubPath', Marker, queue_size=10)
+        self.TIMING = TIMING
         
 
     def updatePos(self, msg):
+        if self.TIMING:
+            ts = datetime.datetime.now()
+            n = self.ndb.G.number_of_nodes()
+
         x = msg.pose.position.x
         y = msg.pose.position.y
         self.ndb.add_node((x, y))
         self.publishGraph(frame_id='map')
+        if self.TIMING and self.ndb.G.number_of_nodes()>n:
+            te = datetime.datetime.now()
+            dt = te-ts
+            print("TIMING={} [us]- buildGraph.updatePos - Nn={}, Ne={}".format(dt.microseconds, self.ndb.G.number_of_nodes(), self.ndb.G.number_of_edges()))
 
 
     def publishGraph(self, pub_ns='net', stamp=None, frame_id='world', size=0.03, numLmks=0):
@@ -132,14 +143,22 @@ class buildGraph:
 
 
     def path_to_target(self, xy):
+        if self.TIMING:
+            ts = datetime.datetime.now()
         nodes, _ = self.ndb.nodes_are_eq(xy, thresh=0.5)
         if len(nodes)>0 and (self.ndb.last_node is not None):
             trg = tuple(nodes[0])
             src = self.ndb.last_node
-            node_list, weights = self.ndb.get_path(src, trg)
-            return node_list
+            node_list, _ = self.ndb.get_path(src, trg)
         else:
             node_list = None
+
+        if self.TIMING:
+            te = datetime.datetime.now()
+            dt = te-ts
+            print("TIMING={} [us]- buildGraph.path_to_target".format(dt.microseconds))
+
+        return node_list
 
 
 

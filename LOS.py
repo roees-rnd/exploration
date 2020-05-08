@@ -34,8 +34,8 @@ def is_LOS(x1, y1, x2, y2, obsmap):
         return False
 
     # calc distance:
-    dxy = int(np.rint(np.sqrt(np.square(x1-x2) + np.square(y1-y2))))
-
+    # dxy = int(np.rint(np.sqrt(np.square(x1-x2) + np.square(y1-y2))))
+    dxy = int(np.rint(np.linalg.norm([x1-x2, y1-y2])))
     # if distance is 0- LOS exists
     if dxy <= LOS_DISTANCE_IN_PIXERL_TOLERANCE:
         return True

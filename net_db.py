@@ -6,26 +6,26 @@ import LOS
 
 
 class net_db:
-
     def __init__(self):
         self.G = nx.Graph()
         self.last_node = None
-        self.num_nodes = 0
         self._min_dist = 0.7
         self.r = np.array([])
         self.map_info = None
 
     def add_node(self, xy=(0, 0), is_door=False):
-        if self.num_nodes == 0:  # no nodes yet
+        added_node = False
+        if self.G.number_of_nodes() == 0:  # no nodes yet
             self.G.add_node(xy)
         else:
             # Distance from last node:
-            weight = np.sqrt(
-                np.square(xy[0]-self.last_node[0])+np.square(xy[1]-self.last_node[1]))
+            weight = np.linalg.norm([xy[0]-self.last_node[0],xy[1]-self.last_node[1]])
+            # weight = np.sqrt(
+            #     np.square(xy[0]-self.last_node[0])+np.square(xy[1]-self.last_node[1]))
             # If we are far enough from last node:
             if weight > self._min_dist:
                 # If current position is far enough from all other nodes:
-                nae, _ = self.nodes_are_eq(xy, self._min_dist/2)
+                nae, req = self.nodes_are_eq(xy, self._min_dist/2)
                 if len(nae) < 1:  # no close nodes
                     if self.map_info is None:
                         self.G.add_node(xy)
@@ -36,8 +36,9 @@ class net_db:
                             self.G.add_edge(xy, self.last_node, weight=weight)
                 else:
                     if not self.G.has_edge(self.last_node, nae[0]):
-                        w = np.sqrt(
-                            np.square(nae[0][0]-self.last_node[0])+np.square(nae[0][1]-self.last_node[1]))
+                        # w = np.sqrt(
+                        #     np.square(nae[0][0]-self.last_node[0])+np.square(nae[0][1]-self.last_node[1]))
+                        w = req[0]
                         self.G.add_edge(self.last_node, nae[0], weight=w)
                     self.last_node = nae[0]
                     return False
@@ -49,7 +50,7 @@ class net_db:
         nx.set_node_attributes(self.G, attr)
 
         self.last_node = xy
-        self.num_nodes += 1
+
         return True
 
     def add_node_map(self, xy):
@@ -67,12 +68,12 @@ class net_db:
         for n in list(self.G.nodes()):
             n_ij = self.map_info.xy_to_ij(n[0], n[1])
             if LOS.is_LOS(new_ij[0], new_ij[1], n_ij[0], n_ij[1], np.abs(self.map_info.map)>0):
-                w = np.sqrt(np.square(n[0]-xy[0])+np.square(n[1]-xy[1]))
+                # w = np.sqrt(np.square(n[0]-xy[0])+np.square(n[1]-xy[1]))
+                w = np.linalg.norm([n[0]-xy[0],n[1]-xy[1]])
                 self.G.add_edge(xy, n, weight=w)
                 if node_added is False:
                     nx.set_node_attributes(self.G, {xy: {'is_door': False}})
                     node_added = True
-                    self.num_nodes += 1
         return node_added
 
     # def connect_node(self, map, xy):

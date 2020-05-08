@@ -15,8 +15,8 @@ import buildGraph
 # import sys
 # sys.path.append("/home/roee/catkin_ws/src/exploration/env/lib/python3.6/site-packages")
 
-class ExplorationCalss:
-    def __init__(self):
+class ExplorationClass:
+    def __init__(self, TIMING=False):
         self.DEBUG_FLAG = False
 
         # publishers
@@ -35,17 +35,9 @@ class ExplorationCalss:
         self.route_to_point = []
         #self.graph = Graph()
         #self.chose_mission = ChoseExplorationPointClass()
-        self.buildGraph = buildGraph.buildGraph()
+        self.buildGraph = buildGraph.buildGraph(TIMING=TIMING)
         rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
-        # rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.route_from_exp)
-
-
         self.map = None
-
-
-    def route_from_exp(self, msg):
-        xy = (msg.pose.position.x, msg.pose.position.y)
-        pose_array = self.buildGraph.getPoseArrayToTarget_as_poseArray(xy, vis=True)
 
     def saveMap(self, msg):
         if self.map is None:
@@ -66,29 +58,18 @@ class ExplorationCalss:
         #currentTarget = self.chose_mission.do_step(self.graph, currentPos, self.current_frontiers)
         #path = self.graph.route(currentPos, currentTarget)
 
-    def route_to_point(self, goal):
-        self.route_to_point = goal
-        path = self.graph.route(goal)
-        return path
-
-    def route_to_best_frontier(self):
-        currentTarget = self.chose_mission.do_step(self.graph, current_frontiers)
-        self.route_to_point = currentTarget
-        path = self.graph.route(currentTarget)
-        return path
-
-    def publish_frontiers(self, frontiers_list):
-        msgOut = PoseArray()
-        msgOut.header.frame_id = 'map'
-        msgOut.header.stamp = rospy.Time.now()
-        pose = Pose()
-        for i in range(len(frontiers_list)):
-            pose.position.x = frontiers_list[i][0]
-            pose.position.y = frontiers_list[i][1]
-            pose.position.z = 0.7
-            pose.orientation.w = 1
-            msgOut.poses.append(copy.deepcopy(pose))
-        self.PubFrontier.publish(msgOut)
+    # TODO:
+    # def route_to_point(self, goal):
+    #     self.route_to_point = goal
+    #     path = self.graph.route(goal)
+    #     return path
+    
+    # TODO:
+    # def route_to_best_frontier(self):
+    #     currentTarget = self.chose_mission.do_step(self.graph, current_frontiers)
+    #     self.route_to_point = currentTarget
+    #     path = self.graph.route(currentTarget)
+    #     return path
 
     def publish_frontiers(self, frontiers_list):
         msgOut = PoseArray()
@@ -106,5 +87,5 @@ class ExplorationCalss:
 
 if __name__ == "__main__":
     rospy.init_node('ExplorationCalssNode')
-    exploration = ExplorationCalss()
+    exploration = ExplorationClass(TIMING=True)
     rospy.spin()
