@@ -3,5 +3,6 @@
         "${workspaceFolder}/../../devel/lib/python2.7/dist-packages",
         "/opt/ros/melodic/lib/python2.7/dist-packages"
     ],
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "python.pythonPath": "env/bin/python"
 }
