@@ -101,7 +101,7 @@ class PathPlannerClass:
                 self.PubRoute.publish(msg_out)
 
     def route_from_exp(self, msg):
-        if self.mode_msg == "EXPLORATION":
+        if self.mode_msg == "EXPLORATION" or True:
             xy = (msg.pose.position.x, msg.pose.position.y)
             pose_array = self.exploration.buildGraph.getPoseArrayToTarget_as_poseArray(xy, vis=True)
             self.PubRoute.publish(pose_array)
