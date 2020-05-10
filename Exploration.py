@@ -19,7 +19,7 @@ import buildGraph
 class ExplorationClass:
     def __init__(self, TIMING=False):
         self.DEBUG_FLAG = False
-        rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
+        # rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
         # publishers
         self.PubFrontier = rospy.Publisher(
             '/path_planner/frontiers', PoseArray, queue_size=1)  # list of frontiers to publish

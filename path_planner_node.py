@@ -30,7 +30,7 @@ class PathPlannerClass:
         self.exection_status_msg = 'IDLE'
         self.mode_msg = 'GOTO'
         self.exploration = ExplorationClass(TIMING=True)
-
+        self.use_exp = False
         self.params = {'distance_converge_last_point_m': 0.0,
                         'distance_converge_m': 0.0,
                         'heading_convergence_last_point_rad': 0.0,
@@ -56,7 +56,7 @@ class PathPlannerClass:
         rospy.Subscriber('/wp_handler/out/status', String, self.get_exection_status) #  recives from wp_handler: ['IDLE', 'PROCESSING', 'FINISHED', 'FAILURE']
         rospy.Subscriber('/FFK/path_planner/mode', String, self.set_mode) # set mode from ['IDLE', 'GOTO', 'EXPLORATION']
         #rospy.Subscriber("/map", OccupancyGrid, callback=self.get_map)
-        
+        rospy.Subscriber("/switch_to_exp", String, self.switch_to_exp)
         rospy.Timer(rospy.Duration(1),self.SendStatus)
 
 
@@ -84,7 +84,7 @@ class PathPlannerClass:
         self.drone_yaw = self.euler_from_quaternion(np.array([msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w]))[2]
 
     def save_goal_pos(self, msg):
-        if self.mode_msg=="GO_TO":
+        if self.mode_msg=="GO_TO" and self.use_exp is False:
             yaw_goal = self.euler_from_quaternion(np.array([msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w]))[2]
             if ((np.linalg.norm(np.array([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])-self.goal_pos) > 0.1) or
                 (np.abs(self.goal_yaw - yaw_goal) > 0.01)):
@@ -101,11 +101,20 @@ class PathPlannerClass:
                 self.PubRoute.publish(msg_out)
 
     def route_from_exp(self, msg):
-        if self.mode_msg == "EXPLORATION" or True:
-            xy = (msg.pose.position.x, msg.pose.position.y)
-            pose_array = self.exploration.buildGraph.getPoseArrayToTarget_as_poseArray(xy, vis=True)
+        # if self.mode_msg == "EXPLORATION":  # or True:
+        xy = (msg.pose.position.x, msg.pose.position.y)
+        pose_array = self.exploration.buildGraph.getPoseArrayToTarget_as_poseArray(xy, vis=True)
+        if self.mode_msg == "EXPLORATION" or self.use_exp:  # or True:
             self.PubRoute.publish(pose_array)
         
+    def switch_to_exp(self, msg):
+        # import pdb;pdb.set_trace()
+        if self.use_exp:
+            self.use_exp = False
+            print("Switched to GOTO!")
+        else:
+            self.use_exp = True
+            print("Switched to EXPLORATION!")
 
     def get_exection_status(self, msg):
         # self.exection_status_msg = msg.status[0].message #['IDLE', 'PROCESSING', 'FINISHED', 'FAILURE']
