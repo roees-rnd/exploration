@@ -139,13 +139,14 @@ class FrontierClass:
 						all_pts=pt
 
 			
-		centroids = self.cluster_points(all_pts)
+		#centroids = self.cluster_points(all_pts)
 		#centroids = all_pts
 		end_time = time.time()
 		t = (end_time - start_time) * 1000  # msec
-		print("finding frontiers took", t, "msec. the frontiers are: ", centroids)
+		#print("finding frontiers took", t, "msec. the frontiers are: ", centroids)
+		print("finding frontiers took", t, "msec. the frontiers are: ")#, all_pts)
 		#self.print_frontiers(all_pts) , centroids)
-		return centroids
+		return all_pts #centroids
 
 
 	def publish_frontiers(self, frontiers_list):
