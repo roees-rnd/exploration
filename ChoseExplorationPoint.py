@@ -9,12 +9,14 @@ class ChoseExplorationPointClass():
     def do_step(self, G, pos, list_of_missions):
         closest_mission = None
         dist_to_closest_mission = np.Inf
+        path_to_best_mission = []
         for m in list_of_missions:
-            dist_pos_mission = G.getDistInGraph(pos, m)
+            path, dist_pos_mission = G.get_path_pos2target(pos, m)
             if dist_pos_mission<dist_to_closest_mission:
                 closest_mission = m
                 dist_to_closest_mission = dist_pos_mission
-        return closest_mission
+                path_to_best_mission = path
+        return closest_mission, path_to_best_mission
         
 
 
