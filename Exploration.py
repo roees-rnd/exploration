@@ -32,7 +32,7 @@ class ExplorationClass:
 
         # publishers
         self.PubFrontier = rospy.Publisher(
-            '/path_planner/frontiers_1', PoseArray, queue_size=1)  # list of frontiers to publish
+            '/path_planner/frontiers', PoseArray, queue_size=1)  # list of frontiers to publish
         # PubVer.publish(version)
         # rospy.set_param('/version/path_planner', version)
 
