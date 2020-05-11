@@ -52,7 +52,7 @@ class FrontierClass:
 		Frontiers_list = self.add_new_frontiers_to_FL(new_shifted_frontiers)
 		self.list_of_frontiers = Frontiers_list
 		#self.publish_frontiers(relevant_frontiers)
-		return relevant_frontiers
+		return current_frontiers
 
 
 	def cluster_points(self, all_pts):
