@@ -1,6 +1,6 @@
 #!/home/ubuntu/catkin_ws_s/src/exploration/env/bin/python
 
-#!/usr/bin/env python
+## !/usr/bin/env python
 import copy
 import rospy
 from nav_msgs.msg import OccupancyGrid
@@ -19,17 +19,8 @@ import buildGraph
 class ExplorationClass:
     def __init__(self, TIMING=False):
         self.DEBUG_FLAG = False
-        # rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
-        # publishers
-        self.PubFrontier = rospy.Publisher(
-            '/path_planner/frontiers', PoseArray, queue_size=1)  # list of frontiers to publish
-        # PubVer.publish(version)
-        # rospy.set_param('/version/path_planner', version)
 
-        # subdcribers
-        # rospy.Subscriber('/localization/out/pose', PoseStamped, self.save_self_pos) # saves self.pos
-        # rospy.Subscriber('/mavros/local_position/pose',
-        #                     PoseStamped, self.save_self_pos)  # saves self.pos
+
 
         self.frontiers = FrontierClass()
         self.current_frontiers = []
@@ -37,7 +28,21 @@ class ExplorationClass:
         #self.graph = Graph()
         #self.chose_mission = ChoseExplorationPointClass()
         self.buildGraph = buildGraph.buildGraph(TIMING=TIMING)
-        rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
+
+
+        # publishers
+        self.PubFrontier = rospy.Publisher(
+            '/path_planner/frontiers_1', PoseArray, queue_size=1)  # list of frontiers to publish
+        # PubVer.publish(version)
+        # rospy.set_param('/version/path_planner', version)
+
+        # subdcribers
+        # rospy.Subscriber('/localization/out/pose', PoseStamped, self.save_self_pos) # saves self.pos
+        # rospy.Subscriber('/mavros/local_position/pose',
+        #                     PoseStamped, self.save_self_pos)  # saves self.pos
+        rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step, queue_size=1)
+
+
         self.map = None
 
 
@@ -48,11 +53,21 @@ class ExplorationClass:
     def saveMap(self, msg):
         if self.map is None:
             self.map = MapInfo(msg.info.width, msg.info.height, msg.info.resolution,
-                               msg.info.origin.position.x, msg.info.origin.position.y, msg.info.origin.position.z)
+                                msg.info.origin.position.x, msg.info.origin.position.y, msg.info.origin.position.z)
         self.map.set_map(msg.data)
         self.buildGraph.ndb.map_info = self.map
 
     def do_step(self, mapData):
+        if self.map is not None:
+            new_map = np.reshape(copy.deepcopy(mapData.data),
+                                (self.map.map_sizeY, self.map.map_sizeX)).T
+            diff = np.sum(np.abs(np.subtract(new_map, self.map.map))>0)
+            if diff<20:
+                print("same map, no update")
+                self.publish_frontiers(self.current_frontiers)
+                return
+
+
         self.saveMap(mapData)
         self.current_frontiers = self.frontiers.do_step(self.map)
         self.publish_frontiers(self.current_frontiers)
