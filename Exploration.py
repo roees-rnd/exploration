@@ -37,7 +37,9 @@ class ExplorationClass:
         #self.graph = Graph()
         #self.chose_mission = ChoseExplorationPointClass()
         self.buildGraph = buildGraph.buildGraph(TIMING=TIMING)
-        rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step)
+        rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step, queue_size=1)
+
+        # rospy.timer.Timer(1.0/rateHz, self.do_step, oneshot=False)
         self.map = None
 
 
