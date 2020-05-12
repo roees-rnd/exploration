@@ -19,10 +19,12 @@ import buildGraph
 class ExplorationClass:
     def __init__(self, TIMING=False):
         self.DEBUG_FLAG = False
+        self.TIMING = False
+        self.min_number_of_pixel_change =20
 
 
 
-        self.frontiers = FrontierClass()
+        self.frontiers = FrontierClass(TIMING= TIMING, DEBUG_FLAG = DEBUG_FLAG)
         self.current_frontiers = []
         self.route_to_point = []
         #self.graph = Graph()
@@ -59,30 +61,40 @@ class ExplorationClass:
         self.buildGraph.ndb.map_info = self.map
 
     def do_step(self, mapData):
-        t0 = time.time()
+        if self.TIMING:
+            t0 = time.time()
         if self.map is not None:
             new_map = np.reshape(mapData.data,
                                 (self.map.map_sizeY, self.map.map_sizeX)).T
-            t1 = time.time()
-            print("exp.do_step: reshape & deepcopy took ", t1-t0)
-            diff = np.sum(np.abs(np.subtract(new_map, self.map.map))>0)
-            if diff<20:
-                print("same map, no update. num of F: " , len(self.current_frontiers))
+            if self.TIMING:
+                t1 = time.time()
+                print("exp.do_step: reshape & deepcopy took ", (t1-t0)*1000)
+            diff = np.sum(np.abs(np.subtract(new_map, self.map.map))>0) #number of pixel change from last OCG
+            if diff<self.min_number_of_pixel_change:
+                if self.DEBUG_FLAG:
+                    print("same map, no update. num of F: " , len(self.current_frontiers))
                 self.publish_frontiers(self.current_frontiers)
                 return
 
         self.saveMap(mapData)
-        t00 = time.time()
+
+        if self.TIMING:
+            t00 = time.time()
         
         self.current_frontiers = self.frontiers.do_step(self.map)
         self.publish_frontiers(self.current_frontiers)
-        t01 = time.time()
-        print("exp.do_step: front.do_step took ", t01-t00)
+
+        if self.TIMING:
+            t01 = time.time()
+            print("exp.do_step: front.do_step took ", (t01-t00)*1000)
+
         nodes_to_add = self.frontiers.new_frontiers
         for n in self.current_frontiers:  # nodes_to_add:
             self.buildGraph.ndb.add_node_map((n[0], n[1]))
-        t1 = time.time()
-        print("exp.do_step: add node took ", t1-t0)
+
+        if self.TIMING:
+            t1 = time.time()
+            print("exp.do_step: add node took ", (t1-t0)*1000)
         # nodes_to_remove = self.frontiers.irrelevant_frontiers
         #self.graph.update(self.map, nodes_to_add, nodes_to_remove)
         #currentTarget = self.chose_mission.do_step(self.graph, currentPos, self.current_frontiers)
