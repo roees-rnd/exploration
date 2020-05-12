@@ -20,8 +20,9 @@ from sklearn.cluster import MeanShift, AffinityPropagation
 
 
 class FrontierClass:
-	def __init__(self, DEBUG_FLAG=False):
+	def __init__(self,  TIMING=False, DEBUG_FLAG=False):
 		self.DEBUG_FLAG = DEBUG_FLAG
+		self.TIMING = TIMING
 		self.list_of_frontiers = []
 		self.new_frontiers = []
 		self.irrelevant_frontiers = []
@@ -41,7 +42,8 @@ class FrontierClass:
 		self.map.set_map(msg.data)
 
 	def do_step(self, mapData):
-		do_step_start = time.time()
+		if self.TIMING:
+			do_step_start = time.time()
 		# self.saveMap(mapData)
 		# mapData = self.map
 		# relevant_frontiers = self.remove_irrelevant_frontiers()
@@ -56,19 +58,23 @@ class FrontierClass:
 
 		#self.publish_frontiers(relevant_frontiers)
 
-		do_step_end = time.time()
-		t = (do_step_end - do_step_start) * 1000  # msec
-		print("frontier do step took:", t, "msec. ")
+		if self.TIMING:
+			do_step_end = time.time()
+			t = (do_step_end - do_step_start) * 1000  # msec
+			print("frontier do step took:", t, "msec. ")
+
 		return relevant_frontiers
 
 
 	def cluster_points(self, all_pts):
 		# front = copy.deepcopy(all_pts)
 		if len(all_pts)>1:
+			# clustering algorithem 1:
 			# ms = MeanShift(bandwidth=0.3, bin_seeding=True)   
 			# ms.fit(front)
 			# centroids= ms.cluster_centers_	 #centroids array is the centers of each cluster
 
+			# clustering algorithem 2:
 			clustering = AffinityPropagation().fit(all_pts)
 			centroids= clustering.cluster_centers_
 
@@ -80,36 +86,39 @@ class FrontierClass:
 
 
 	def getfrontier(self, mapInfo):
-		start_time = time.time()
+		if self.TIMING:
+			start_time = time.time()
+
 		self.mapInfo = mapInfo
 		data = self.mapInfo.map
-		# self.mapData_w=mapData.info.width
-		# self.mapData_h=mapData.info.height
+
+		if self.TIMING:
+			start_time_np_where = time.time()
 
 		# create image from OCG
-		start_time_np_where = time.time()
 		img = np.zeros((mapInfo.map_sizeY, mapInfo.map_sizeX, 1), np.uint8)
 		# x = np.where(data==100) 
 		# img_np_where[x[0], x[1]]=0
-		x = np.where(data==0) 
-		img[x[0], x[1]]=255
+		x = np.where(data==0)
+		if len(x)>0:
+			img[x[0], x[1]]=255
 		x = np.where(data==-1) 
-		img[x[0], x[1]]=205
-
-		# img2d = img[:,:,0]
-		# conv_img =  convolve2d(img2d, np.ones([2,2]), mode='same', fillvalue=255)
-		# img[:, :, 0] = conv_img
+		if len(x)>0:
+			img[x[0], x[1]]=205
 
 		o=cv2.inRange(img,0,1)
-		end_time_np_where = time.time()
-		t_np_where = (end_time_np_where -start_time_np_where) * 1000  # msec
-		t_image =t_np_where
+
+		if self.TIMING:
+			end_time_np_where = time.time()
+			t_image = (end_time_np_where -start_time_np_where) * 1000  # msec
 
 		# use canny algo to find edges in img
-		start_time_canny = time.time()
+		if self.TIMING:
+			start_time_canny = time.time()
 		edges_np_where = cv2.Canny(img,0,255)
-		end_time_canny = time.time()
-		t_canny = (end_time_canny - start_time_canny) * 1000  # msec
+		if self.TIMING:
+			end_time_canny = time.time()
+			t_canny = (end_time_canny - start_time_canny) * 1000  # msec
 		edges= edges_np_where
 
 
@@ -129,7 +138,8 @@ class FrontierClass:
 
 		# find contours in img
 		if cv2.__version__.split('.')[0]=="3":
-			start_time_contours = time.time()
+			if self.TIMING:
+				start_time_contours = time.time()
 			_, contours, _ = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 			cv2.drawContours(o, contours, -1, (255,255,255), 5)
 			o=cv2.bitwise_not(o) 
@@ -143,10 +153,12 @@ class FrontierClass:
 			im2, contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 			#im2 = cv2.drawContours(frontier, contours, -1, (255, 0, 0))
 			self.map_of_contours = im2
-			end_time_contours = time.time()
-			t_contours = (end_time_contours - start_time_contours) * 1000  # msec
+			if self.TIMING:
+				end_time_contours = time.time()
+				t_contours = (end_time_contours - start_time_contours) * 1000  # msec
 		else:
-			start_time_contours = time.time()
+			if self.TIMING:
+				start_time_contours = time.time()
 			contours, _ = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 			cv2.drawContours(o, contours, -1, (255,255,255), 5)
 			o=cv2.bitwise_not(o) 
@@ -163,8 +175,9 @@ class FrontierClass:
 			contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 			im2 = cv2.drawContours(frontier, contours, -1, (255, 0, 0))
 			self.map_of_contours = im2
-			end_time_contours = time.time()
-			t_contours = (end_time_contours - start_time_contours) * 1000  # msec
+			if self.TIMING:
+				end_time_contours = time.time()
+				t_contours = (end_time_contours - start_time_contours) * 1000  # msec
 
 		if self.DEBUG_FLAG:
 			# print contours
@@ -195,13 +208,14 @@ class FrontierClass:
 		# centroids_end_time = time.time()
 		# t_centroids = (centroids_end_time - centroids_start_time) * 1000  # msec
 
-		end_time = time.time()
-		t = (end_time - start_time) * 1000  # msec
-		#print("finding frontiers took", t, "msec. the frontiers are: ", centroids)
-		#print("finding frontiers took", t, "msec. the frontiers are: ")#, all_pts)
-		print("finding frontiers took", t, "msec. ", str(len(all_pts)), " fruntiers found!")
-		print("contours clac took: ", str(t_contours), ", creat image took: ", str(t_image), ", canny took: ", str(t_canny), " msec\n")#", clusering took: ", str(t_centroids), " msec\n")
-		#self.print_frontiers(all_pts) , centroids)
+		if self.TIMING:
+			end_time = time.time()
+			t = (end_time - start_time) * 1000  # msec
+			#print("finding frontiers took", t, "msec. the frontiers are: ", centroids)
+			#print("finding frontiers took", t, "msec. the frontiers are: ")#, all_pts)
+			print("finding frontiers took", t, "msec. ", str(len(all_pts)), " fruntiers found!")
+			print("contours clac took: ", str(t_contours), ", creat image took: ", str(t_image), ", canny took: ", str(t_canny), " msec\n")#", clusering took: ", str(t_centroids), " msec\n")
+			#self.print_frontiers(all_pts) , centroids)
 		return all_pts
 
 
