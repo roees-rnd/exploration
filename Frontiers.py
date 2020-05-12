@@ -100,18 +100,28 @@ class FrontierClass:
 			ax1.imshow(edges)
 			plt.show()
 
-		_, contours, _ = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		if cv2.__version__ < '3':
+			_, contours, _ = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		else:
+			contours, _ = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 		cv2.drawContours(o, contours, -1, (255,255,255), 5)
 		o=cv2.bitwise_not(o) 
 		res = cv2.bitwise_and(o,edges)
 		#------------------------------
 
 		frontier=copy.deepcopy(res)
-		_, contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		if cv2.__version__ < '3':
+			_, contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		else:
+			contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 		cv2.drawContours(frontier, contours, -1, (255,255,255), 2)
 
-		im2, contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-		#im2 = cv2.drawContours(frontier, contours, -1, (255, 0, 0))
+		if cv2.__version__ < '3':
+			im2, contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		else:
+			contours, _ = cv2.findContours(frontier,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+			im2 = cv2.drawContours(frontier, contours, -1, (255, 0, 0))
+
 		self.map_of_contours = im2
 
 		if self.DEBUG_FLAG:
