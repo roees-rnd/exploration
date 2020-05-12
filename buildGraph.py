@@ -38,7 +38,7 @@ class buildGraph:
         self.publishGraph(frame_id='map')
         if self.TIMING and self.ndb.G.number_of_nodes()>n:
             te = datetime.datetime.now()
-            dt = te-ts
+            dt = (te-ts)*1000
             print("TIMING={} [us]- buildGraph.updatePos - Nn={}, Ne={}".format(dt.microseconds, self.ndb.G.number_of_nodes(), self.ndb.G.number_of_edges()))
 
 
@@ -155,7 +155,7 @@ class buildGraph:
 
         if self.TIMING:
             te = datetime.datetime.now()
-            dt = te-ts
+            dt = (te-ts)*1000
             print("TIMING={} [us]- buildGraph.path_to_target".format(dt.microseconds))
 
         return node_list
