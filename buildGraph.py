@@ -11,6 +11,7 @@ import numpy as np
 import copy
 
 import datetime
+import time
 
 
 # ndb.add_node((0, 0.1), False)
@@ -29,7 +30,7 @@ class buildGraph:
 
     def updatePos(self, msg):
         if self.TIMING:
-            ts = datetime.datetime.now()
+            ts = time.time()
             n = self.ndb.G.number_of_nodes()
 
         x = msg.pose.position.x
@@ -37,9 +38,9 @@ class buildGraph:
         self.ndb.add_node((x, y))
         self.publishGraph(frame_id='map')
         if self.TIMING and self.ndb.G.number_of_nodes()>n:
-            te = datetime.datetime.now()
+            te = time.time()
             dt = (te-ts)*1000
-            print("TIMING={} [us]- buildGraph.updatePos - Nn={}, Ne={}".format(dt.microseconds, self.ndb.G.number_of_nodes(), self.ndb.G.number_of_edges()))
+            print("TIMING={} [us]- buildGraph.updatePos - Nn={}, Ne={}".format(dt, self.ndb.G.number_of_nodes(), self.ndb.G.number_of_edges()))
 
 
     def publishGraph(self, pub_ns='net', stamp=None, frame_id='world', size=0.03, numLmks=0):
@@ -144,7 +145,7 @@ class buildGraph:
 
     def path_to_target(self, xy):
         if self.TIMING:
-            ts = datetime.datetime.now()
+            ts = time.time()
         nodes, _ = self.ndb.nodes_are_eq(xy, thresh=0.5)
         if len(nodes)>0 and (self.ndb.last_node is not None):
             trg = tuple(nodes[0])
@@ -154,9 +155,9 @@ class buildGraph:
             node_list = None
 
         if self.TIMING:
-            te = datetime.datetime.now()
+            te = time.time()
             dt = (te-ts)*1000
-            print("TIMING={} [us]- buildGraph.path_to_target".format(dt.microseconds))
+            print("TIMING={} [us]- buildGraph.path_to_target".format(dt))
 
         return node_list
 

@@ -19,12 +19,12 @@ import buildGraph
 class ExplorationClass:
     def __init__(self, TIMING=False):
         self.DEBUG_FLAG = False
-        self.TIMING = False
+        self.TIMING = TIMING
         self.min_number_of_pixel_change =20
 
 
 
-        self.frontiers = FrontierClass(TIMING= TIMING, DEBUG_FLAG = DEBUG_FLAG)
+        self.frontiers = FrontierClass(TIMING= self.TIMING, DEBUG_FLAG = self.DEBUG_FLAG)
         self.current_frontiers = []
         self.route_to_point = []
         #self.graph = Graph()
@@ -128,7 +128,6 @@ class ExplorationClass:
 
 
 if __name__ == "__main__":
-    print("in main")
     rospy.init_node('ExplorationCalssNode')
     exploration = ExplorationClass(TIMING=True)
     rospy.spin()

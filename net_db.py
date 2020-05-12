@@ -4,6 +4,7 @@ import networkx as nx
 import MapInfo as mapi
 import LOS
 import datetime
+import time
 
 class net_db:
     def __init__(self, TIMING=False):
@@ -56,7 +57,7 @@ class net_db:
 
     def add_node_map(self, xy):
         if self.TIMING:
-            ts = datetime.datetime.now()
+            ts = time.time()
             n = self.G.number_of_nodes()
         
         node_added = False
@@ -80,9 +81,9 @@ class net_db:
                     nx.set_node_attributes(self.G, {xy: {'is_door': False}})
                     node_added = True
         if self.TIMING:
-            te = datetime.datetime.now()
+            te = time.time
             dt = (te-ts)*1000
-            print("TIMING={} [us]- buildGraph.updatePos - Nn={}, Ne={}".format(dt.microseconds, self.G.number_of_nodes(), self.G.number_of_edges()))
+            print("TIMING={} [us]- buildGraph.updatePos - Nn={}, Ne={}".format(dt, self.G.number_of_nodes(), self.G.number_of_edges()))
 
         return node_added
 
