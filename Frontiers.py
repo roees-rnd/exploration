@@ -15,6 +15,7 @@ sys.path.append("/usr/lib/python3/dist-packages")  # this is for raspi cv2 (alre
 import cv2
 import matplotlib.pyplot as plt
 from sklearn.cluster import MeanShift, AffinityPropagation
+from scipy.signal import convolve2d
 
 
 
@@ -40,6 +41,7 @@ class FrontierClass:
 		self.map.set_map(msg.data)
 
 	def do_step(self, mapData):
+		do_step_start = time.time()
 		# self.saveMap(mapData)
 		# mapData = self.map
 		# relevant_frontiers = self.remove_irrelevant_frontiers()
@@ -51,7 +53,12 @@ class FrontierClass:
 		new_shifted_frontiers = self.add_frontier_context(current_frontiers)
 		Frontiers_list = self.add_new_frontiers_to_FL(new_shifted_frontiers)
 		self.list_of_frontiers = Frontiers_list
+
 		#self.publish_frontiers(relevant_frontiers)
+
+		do_step_end = time.time()
+		t = (do_step_end - do_step_start) * 1000  # msec
+		print("frontier do step took:", t, "msec. ")
 		return relevant_frontiers
 
 
@@ -88,6 +95,11 @@ class FrontierClass:
 		img[x[0], x[1]]=255
 		x = np.where(data==-1) 
 		img[x[0], x[1]]=205
+
+		# img2d = img[:,:,0]
+		# conv_img =  convolve2d(img2d, np.ones([2,2]), mode='same', fillvalue=255)
+		# img[:, :, 0] = conv_img
+
 		o=cv2.inRange(img,0,1)
 		end_time_np_where = time.time()
 		t_np_where = (end_time_np_where -start_time_np_where) * 1000  # msec
@@ -99,14 +111,21 @@ class FrontierClass:
 		end_time_canny = time.time()
 		t_canny = (end_time_canny - start_time_canny) * 1000  # msec
 		edges= edges_np_where
-		
+
+
 
 		if self.DEBUG_FLAG:
 			# print edges
 			fig = plt.figure()
-			ax1 = fig.add_subplot(111)
-			ax1.imshow(edges)
+			ax1 = fig.add_subplot(121)
+			ax1.imshow(o)
+			#ax1.imshow(edges)
+
+			ax2 = fig.add_subplot(122)
+			ax2.imshow(conv_img)
+
 			plt.show()
+
 
 		# find contours in img
 		if cv2.__version__.split('.')[0]=="3":
@@ -131,6 +150,9 @@ class FrontierClass:
 			contours, _ = cv2.findContours(o,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 			cv2.drawContours(o, contours, -1, (255,255,255), 5)
 			o=cv2.bitwise_not(o) 
+
+			#conv_img =  convolve2d(o, np.ones([2,2]), mode='same', boundary='wrap', fillvalue=255)
+
 			res = cv2.bitwise_and(o,edges)
 			#------------------------------
 
