@@ -15,7 +15,7 @@ sys.path.append("/usr/lib/python3/dist-packages")  # this is for raspi cv2 (alre
 import cv2
 import matplotlib.pyplot as plt
 from sklearn.cluster import MeanShift, AffinityPropagation
-from scipy.signal import convolve2d
+# from scipy.signal import convolve2d
 
 
 
@@ -121,8 +121,8 @@ class FrontierClass:
 			ax1.imshow(o)
 			#ax1.imshow(edges)
 
-			ax2 = fig.add_subplot(122)
-			ax2.imshow(conv_img)
+			# ax2 = fig.add_subplot(122)
+			# ax2.imshow(conv_img)
 
 			plt.show()
 

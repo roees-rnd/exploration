@@ -14,7 +14,7 @@ class MapInfo:
         self.map = None
 
     def set_map(self, map_data):
-        self.map = np.reshape(copy.deepcopy(map_data),
+        self.map = np.reshape(map_data,
                               (self.map_sizeY, self.map_sizeX)).T
 
     def xy_to_ij(self, x, y):

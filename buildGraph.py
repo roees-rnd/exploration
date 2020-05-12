@@ -21,10 +21,10 @@ class buildGraph:
     def __init__(self, TIMING=False):
         rospy.Subscriber('/slam_out_pose', PoseStamped, self.updatePos)
         # rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.publishPath)
-        self.ndb = net_db.net_db()
+        self.ndb = net_db.net_db(TIMING=TIMING)
         self.pubNodes = rospy.Publisher('/pubNodes', Marker, queue_size=10)
         self.pubPathMarker = rospy.Publisher('/pubPath', Marker, queue_size=10)
-        self.TIMING = TIMING
+        self.TIMING = False
         
 
     def updatePos(self, msg):

@@ -3,15 +3,16 @@ import numpy as np
 import networkx as nx
 import MapInfo as mapi
 import LOS
-
+import datetime
 
 class net_db:
-    def __init__(self):
-        self.G = nx.Graph()
+    def __init__(self, TIMING=False):
+        self.G = nx.Graph(TIMING=False)
         self.last_node = None
         self._min_dist = 0.7
         self.r = np.array([])
         self.map_info = None
+        self.TIMING = TIMING
 
     def add_node(self, xy=(0, 0), is_door=False):
         added_node = False
@@ -54,6 +55,10 @@ class net_db:
         return True
 
     def add_node_map(self, xy):
+        if self.TIMING:
+            ts = datetime.datetime.now()
+            n = self.G.number_of_nodes()
+        
         node_added = False
         if self.map_info is None:
             return False
@@ -74,6 +79,11 @@ class net_db:
                 if node_added is False:
                     nx.set_node_attributes(self.G, {xy: {'is_door': False}})
                     node_added = True
+        if self.TIMING:
+            te = datetime.datetime.now()
+            dt = te-ts
+            print("TIMING={} [us]- buildGraph.updatePos - Nn={}, Ne={}".format(dt.microseconds, self.G.number_of_nodes(), self.G.number_of_edges()))
+
         return node_added
 
     # def connect_node(self, map, xy):

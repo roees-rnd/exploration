@@ -32,7 +32,7 @@ class ExplorationClass:
 
         # publishers
         self.PubFrontier = rospy.Publisher(
-            '/path_planner/frontiers_1', PoseArray, queue_size=1)  # list of frontiers to publish
+            '/path_planner/frontiers', PoseArray, queue_size=1)  # list of frontiers to publish
         # PubVer.publish(version)
         # rospy.set_param('/version/path_planner', version)
 
@@ -41,6 +41,7 @@ class ExplorationClass:
         # rospy.Subscriber('/mavros/local_position/pose',
         #                     PoseStamped, self.save_self_pos)  # saves self.pos
         rospy.Subscriber("/map", OccupancyGrid, callback=self.do_step, queue_size=1)
+        # rospy.timer.Timer(period=rospy.Duration(1), callback=self.do_step, oneshot=False)
 
 
         self.map = None
@@ -58,22 +59,30 @@ class ExplorationClass:
         self.buildGraph.ndb.map_info = self.map
 
     def do_step(self, mapData):
+        t0 = time.time()
         if self.map is not None:
-            new_map = np.reshape(copy.deepcopy(mapData.data),
+            new_map = np.reshape(mapData.data,
                                 (self.map.map_sizeY, self.map.map_sizeX)).T
+            t1 = time.time()
+            print("exp.do_step: reshape & deepcopy took ", t1-t0)
             diff = np.sum(np.abs(np.subtract(new_map, self.map.map))>0)
             if diff<20:
-                print("same map, no update")
+                print("same map, no update. num of F: " , len(self.current_frontiers))
                 self.publish_frontiers(self.current_frontiers)
                 return
 
-
         self.saveMap(mapData)
+        t00 = time.time()
+        
         self.current_frontiers = self.frontiers.do_step(self.map)
         self.publish_frontiers(self.current_frontiers)
+        t01 = time.time()
+        print("exp.do_step: front.do_step took ", t01-t00)
         nodes_to_add = self.frontiers.new_frontiers
         for n in self.current_frontiers:  # nodes_to_add:
             self.buildGraph.ndb.add_node_map((n[0], n[1]))
+        t1 = time.time()
+        print("exp.do_step: add node took ", t1-t0)
         # nodes_to_remove = self.frontiers.irrelevant_frontiers
         #self.graph.update(self.map, nodes_to_add, nodes_to_remove)
         #currentTarget = self.chose_mission.do_step(self.graph, currentPos, self.current_frontiers)
