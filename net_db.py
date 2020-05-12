@@ -81,7 +81,7 @@ class net_db:
                     node_added = True
         if self.TIMING:
             te = datetime.datetime.now()
-            dt = te-ts
+            dt = (te-ts)*1000
             print("TIMING={} [us]- buildGraph.updatePos - Nn={}, Ne={}".format(dt.microseconds, self.G.number_of_nodes(), self.G.number_of_edges()))
 
         return node_added
